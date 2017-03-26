@@ -1,67 +1,157 @@
 package main
 
 import (
-	"errors"
+	"encoding/binary"
 	"fmt"
 	"log"
 	"net"
+	"strconv"
+	"strings"
 
 	"github.com/davidqhr/sock5/client"
+	"github.com/davidqhr/sock5/helper"
 	"github.com/davidqhr/sock5/logger"
 )
 
-var VERSION = byte('\x05')
-var AUTH_NO = byte('\x00')
-var AUTH_USERNAME_PASSWORD = byte('\x02')
+func handleCmdConnection(client *client.Client) {
+	conn := client.Conn
+	buf := make([]byte, 100)
 
-var NO_ACCEPTABLE_METHODS = byte('\xFF')
+	_, err := conn.Read(buf)
+
+	if err != nil {
+		return
+	}
+
+	addrType := buf[0]
+	var addr string
+	port_bytes := make([]byte, 2)
+
+	// logger.Debug(client, "addrType: %X", addrType)
+	switch addrType {
+	case helper.ATYP_IPV4:
+		ipv4_bytes := buf[1:5]
+		port_bytes = buf[5:7]
+		addr = helper.BytesToIpv4String(ipv4_bytes)
+	case helper.APTY_IPV6:
+		logger.Error(client, "NOT IMPLEMENTED APTY_IPV6")
+		return
+	case helper.APTY_DOMAINNAME:
+		domainLen := uint8(buf[1])
+		addr = string(buf[2 : 2+domainLen])
+		port_bytes = buf[2+domainLen : 2+domainLen+2]
+		// logger.Error(client, "NOT IMPLEMENTED APTY_DOMAINNAME")
+		// return
+	}
+
+	port := binary.BigEndian.Uint16(port_bytes)
+
+	logger.Debug(client, "addr: %s, port: %d", addr, port)
+
+	remoteConn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", string(addr), port))
+	defer remoteConn.Close()
+
+	if err != nil {
+		logger.Info(client, "Connect remote Failed %s", conn.LocalAddr().String())
+		return
+	}
+
+	addr_and_port := make([]string, 2)
+	addr_and_port = strings.Split(conn.LocalAddr().String(), ":")
+	dstAddr := addr_and_port[0]
+	dstPort := addr_and_port[1]
+
+	dstPortBytes := make([]byte, 2)
+	dstPortInt, err := strconv.Atoi(dstPort)
+
+	binary.BigEndian.PutUint16(dstPortBytes, uint16(dstPortInt))
+
+	data := []byte{helper.VERSION, helper.REPLY_SUCCESS, helper.RSV, helper.ATYP_IPV4}
+	data = append(data, helper.Ipv4StringToBytes(dstAddr)...)
+	data = append(data, dstPortBytes...)
+
+	logger.Debug(client, "send data %X", data)
+	conn.Write(data)
+
+	go proxyTcp(conn, remoteConn)
+	proxyTcp(remoteConn, conn)
+}
+
+func proxyTcp(src net.Conn, dst net.Conn) {
+	buf := make([]byte, 1024)
+
+	for {
+		n, err := src.Read(buf)
+
+		if err != nil {
+			break
+		}
+
+		n, err = dst.Write(buf[:n])
+
+		if err != nil {
+			break
+		}
+	}
+}
+
+func handleRequest(client *client.Client) {
+	conn := client.Conn
+	var buf = make([]byte, 3)
+	conn.Read(buf)
+
+	cmd := buf[1]
+
+	switch cmd {
+	case helper.CMD_CONNECT:
+		handleCmdConnection(client)
+	}
+}
 
 func handleConn(client *client.Client) {
 	conn := client.Conn
 	defer conn.Close()
 
-	methods, err := handshake(client)
+	methods, err := client.GetSupportAuthMethods()
 
 	if err != nil {
-		logger.Error(client, "[ERROR]: ", err)
+		logger.Error(client, "%s", err.Error())
 		return
 	}
 
-	method := chooseAuthMethod(conn, methods)
-	client.AuthMethod = method
+	if len(methods) == 0 {
+		logger.Error(client, "no auth methods")
+	}
 
-	logger.Debug(client, "choose auth method: %X", method)
-	conn.Write([]byte{VERSION, method})
+	method := chooseAuthMethod(methods)
+	err = client.SetAuthMethod(method)
 
-	if method == NO_ACCEPTABLE_METHODS {
+	if method == helper.NO_ACCEPTABLE_METHODS {
 		return
 	}
 
 	ok := authentication(client)
 
 	if !ok {
-		logger.Info(client, "authentication failed")
+		logger.Info(client, "Authentication Failed")
 		return
 	}
+
+	handleRequest(client)
 }
 
 func authentication(client *client.Client) bool {
 	conn := client.Conn
 	switch client.AuthMethod {
-	case AUTH_NO:
+	case helper.AUTH_NO:
 		return true
-	case AUTH_USERNAME_PASSWORD:
+	case helper.AUTH_USERNAME_PASSWORD:
 		// http://www.rfc-base.org/txt/rfc-1929.txt
-		var buf = make([]byte, 2)
-		n, err := conn.Read(buf)
+		var buf = make([]byte, 513)
+		_, err := conn.Read(buf)
 
 		if err != nil {
-			logger.Info(client, "read AUTH_USERNAME_PASSWORD error")
-			return false
-		}
-
-		if n != 2 {
-			logger.Info(client, "read username and password len error")
+			logger.Info(client, "read helper.AUTH_USERNAME_PASSWORD error")
 			return false
 		}
 
@@ -72,30 +162,25 @@ func authentication(client *client.Client) bool {
 			return false
 		}
 
-		var username = make([]byte, username_len)
-		n, err = conn.Read(username)
+		username := buf[1+1 : 1+1+username_len]
 
-		if err != nil {
-			logger.Info(client, "read username error: ", err)
-			return false
-		}
-
-		buf = make([]byte, 1)
-		n, err = conn.Read(buf)
-		password_len := int(buf[0])
+		password_len := int(buf[1+1+username_len])
 
 		if password_len > 255 || password_len < 1 {
 			logger.Error(client, "password size error [1-255]")
 			return false
 		}
 
-		var password = make([]byte, password_len)
-		n, err = conn.Read(password)
+		password := buf[1+1+username_len+1 : 1+1+username_len+1+password_len]
 
 		logger.Info(client, "username: %s, password: %s", string(username), string(password))
 
-		// TODO auth
-		conn.Write([]byte("\x01\x00"))
+		// TODO real auth
+		err = client.AuthSuccess()
+
+		if err != nil {
+			return false
+		}
 
 		return true
 	}
@@ -103,70 +188,26 @@ func authentication(client *client.Client) bool {
 	return false
 }
 
-func chooseAuthMethod(conn net.Conn, methods []byte) byte {
+func chooseAuthMethod(methods []byte) byte {
 	methods_map := make(map[byte]bool)
 
 	for i := 0; i < len(methods); i++ {
 		methods_map[methods[i]] = true
 	}
 
-	if methods_map[AUTH_NO] {
-		return AUTH_NO
+	if methods_map[helper.AUTH_NO] {
+		return helper.AUTH_NO
 	} else if methods_map[byte('\x01')] {
 		return byte('\x01')
-	} else if methods_map[AUTH_USERNAME_PASSWORD] {
-		return AUTH_USERNAME_PASSWORD
+	} else if methods_map[helper.AUTH_USERNAME_PASSWORD] {
+		return helper.AUTH_USERNAME_PASSWORD
 	} else if methods_map[byte('\x03')] {
 		return byte('\x03')
 	} else if methods_map[byte('\x80')] {
 		return byte('\x80')
 	} else {
-		return byte('\xFF')
+		return helper.NO_ACCEPTABLE_METHODS
 	}
-}
-
-func handshake(client *client.Client) ([]byte, error) {
-	conn := client.Conn
-	var buf = make([]byte, 2)
-
-	_, err := conn.Read(buf)
-
-	if err != nil {
-		log.Println("conn read error: ", err)
-		return make([]byte, 0), err
-	}
-
-	// log.Printf("read %d bytes, content is %X\n", string(buf[:n]))
-
-	version := buf[0]
-
-	if version != VERSION {
-		return make([]byte, 0), errors.New(fmt.Sprintf("DO NOT SUPPORT VERSION %X", version))
-	}
-
-	methods_count := int(buf[1])
-
-	if methods_count == 0 {
-		return make([]byte, 0), errors.New(fmt.Sprintf("no auth methods"))
-	}
-
-	var methods = make([]byte, methods_count)
-
-	n, err := conn.Read(methods)
-
-	if err != nil {
-		// log.Println("read methods error: ", err)
-		return make([]byte, 0), err
-	}
-
-	if n != methods_count {
-		// log.Println("read methods count error: expect(%d) actual(%d)", methods_count, n)
-		return make([]byte, 0), err
-	}
-
-	log.Printf("methods count: %d, methods: %X", methods_count, methods)
-
-	return methods, nil
 }
 
 func serve(addr string) {
@@ -184,6 +225,7 @@ func serve(addr string) {
 			fmt.Printf("accept error", err)
 			break
 		}
+
 		client := client.NewClient(conn)
 		go handleConn(client)
 	}

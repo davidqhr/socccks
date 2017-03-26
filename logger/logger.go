@@ -25,9 +25,9 @@ func Debug(client *client.Client, format string, formatParams ...interface{}) {
 }
 
 func Error(client *client.Client, format string, formatParams ...interface{}) {
-	log.Printf("\033[0;31m[ERROR]\033[0m (%s) :%v\n", client.Id, fmt.Sprintf(format, formatParams...))
+	log.Printf("\033[0;31m[ERROR]\033[0m (%s): %v\n", client.Id, fmt.Sprintf(format, formatParams...))
 }
 
 func Info(client *client.Client, format string, formatParams ...interface{}) {
-	log.Printf("\033[0;32m[INFO]\033[0m (%s) :%v\n", client.Id, fmt.Sprintf(format, formatParams...))
+	log.Printf("\033[0;32m[INFO ]\033[0m (%s): %v\n", client.Id, fmt.Sprintf(format, formatParams...))
 }

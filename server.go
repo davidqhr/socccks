@@ -14,11 +14,13 @@ var VERSION = byte('\x05')
 var AUTH_NO = byte('\x00')
 var AUTH_USERNAME_PASSWORD = byte('\x02')
 
+var NO_ACCEPTABLE_METHODS = byte('\xFF')
+
 func handleConn(client *client.Client) {
 	conn := client.Conn
 	defer conn.Close()
 
-	methods, err := handshake(conn)
+	methods, err := handshake(client)
 
 	if err != nil {
 		logger.Error(client, "[ERROR]: ", err)
@@ -26,40 +28,55 @@ func handleConn(client *client.Client) {
 	}
 
 	method := chooseAuthMethod(conn, methods)
-	logger.Debug(client, "choose auth method: %X", method)
-	conn.Write([]byte{method})
+	client.AuthMethod = method
 
-	ok := authentication(conn, method)
+	logger.Debug(client, "choose auth method: %X", method)
+	conn.Write([]byte{VERSION, method})
+
+	if method == NO_ACCEPTABLE_METHODS {
+		return
+	}
+
+	ok := authentication(client)
+
 	if !ok {
-		log.Println("authentication failed")
+		logger.Info(client, "authentication failed")
 		return
 	}
 }
 
-func authentication(conn net.Conn, method byte) bool {
-	switch method {
+func authentication(client *client.Client) bool {
+	conn := client.Conn
+	switch client.AuthMethod {
 	case AUTH_NO:
 		return true
 	case AUTH_USERNAME_PASSWORD:
+		// http://www.rfc-base.org/txt/rfc-1929.txt
 		var buf = make([]byte, 2)
 		n, err := conn.Read(buf)
 
 		if err != nil {
-			log.Println("read AUTH_USERNAME_PASSWORD error")
+			logger.Info(client, "read AUTH_USERNAME_PASSWORD error")
 			return false
 		}
 
 		if n != 2 {
-			log.Println("read username and password len error")
+			logger.Info(client, "read username and password len error")
 			return false
 		}
 
 		username_len := int(buf[1])
+
+		if username_len > 255 || username_len < 1 {
+			logger.Error(client, "username size error [1-255]")
+			return false
+		}
+
 		var username = make([]byte, username_len)
 		n, err = conn.Read(username)
 
 		if err != nil {
-			log.Println("read username error: ", err)
+			logger.Info(client, "read username error: ", err)
 			return false
 		}
 
@@ -67,10 +84,19 @@ func authentication(conn net.Conn, method byte) bool {
 		n, err = conn.Read(buf)
 		password_len := int(buf[0])
 
+		if password_len > 255 || password_len < 1 {
+			logger.Error(client, "password size error [1-255]")
+			return false
+		}
+
 		var password = make([]byte, password_len)
 		n, err = conn.Read(password)
 
-		log.Println("username: %s, password: %s", string(username), string(password))
+		logger.Info(client, "username: %s, password: %s", string(username), string(password))
+
+		// TODO auth
+		conn.Write([]byte("\x01\x00"))
+
 		return true
 	}
 
@@ -99,7 +125,8 @@ func chooseAuthMethod(conn net.Conn, methods []byte) byte {
 	}
 }
 
-func handshake(conn net.Conn) ([]byte, error) {
+func handshake(client *client.Client) ([]byte, error) {
+	conn := client.Conn
 	var buf = make([]byte, 2)
 
 	_, err := conn.Read(buf)
@@ -137,7 +164,7 @@ func handshake(conn net.Conn) ([]byte, error) {
 		return make([]byte, 0), err
 	}
 
-	log.Printf("[DEBUG] methods count: %d, methods: %X", methods_count, methods)
+	log.Printf("methods count: %d, methods: %X", methods_count, methods)
 
 	return methods, nil
 }

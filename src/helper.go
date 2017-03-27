@@ -1,4 +1,4 @@
-package helper
+package socks5
 
 import (
 	"bytes"
@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func BytesToIpv4String(ip_bytes []byte) string {
+func bytesToIpv4String(ip_bytes []byte) string {
 	var addr bytes.Buffer
 
 	for i := 0; i < len(ip_bytes); i++ {
@@ -20,7 +20,7 @@ func BytesToIpv4String(ip_bytes []byte) string {
 	return addr.String()
 }
 
-func Ipv4StringToBytes(ip string) []byte {
+func ipv4StringToBytes(ip string) []byte {
 	parts := strings.Split(ip, ".")
 	bytes := make([]byte, 4)
 	for i := 0; i < 4; i++ {

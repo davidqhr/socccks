@@ -1,12 +1,10 @@
-package client
+package socks5
 
 import (
 	"errors"
 	"fmt"
 	"math/rand"
 	"net"
-
-	"github.com/davidqhr/sock5/helper"
 )
 
 type Client struct {
@@ -45,7 +43,7 @@ func (client *Client) GetSupportAuthMethods() ([]byte, error) {
 
 	version := buf[0]
 
-	if version != helper.VERSION {
+	if version != VERSION {
 		return emptyBytes, errors.New(fmt.Sprintf("DO NOT SUPPORT PROXY VERSION %X", version))
 	}
 
@@ -57,7 +55,7 @@ func (client *Client) GetSupportAuthMethods() ([]byte, error) {
 
 func (client *Client) SetAuthMethod(method byte) error {
 	client.AuthMethod = method
-	_, err := client.Conn.Write([]byte{helper.VERSION, method})
+	_, err := client.Conn.Write([]byte{VERSION, method})
 	return err
 }
 

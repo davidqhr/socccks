@@ -1,4 +1,4 @@
-package main
+package socks5
 
 import (
 	"encoding/binary"
@@ -7,13 +7,9 @@ import (
 	"net"
 	"strconv"
 	"strings"
-
-	"github.com/davidqhr/sock5/client"
-	"github.com/davidqhr/sock5/helper"
-	"github.com/davidqhr/sock5/logger"
 )
 
-func handleCmdConnection(client *client.Client) {
+func handleCmdConnection(client *Client) {
 	conn := client.Conn
 	buf := make([]byte, 100)
 
@@ -29,14 +25,14 @@ func handleCmdConnection(client *client.Client) {
 
 	// logger.Debug(client, "addrType: %X", addrType)
 	switch addrType {
-	case helper.ATYP_IPV4:
+	case ATYP_IPV4:
 		ipv4_bytes := buf[1:5]
 		port_bytes = buf[5:7]
-		addr = helper.BytesToIpv4String(ipv4_bytes)
-	case helper.APTY_IPV6:
+		addr = bytesToIpv4String(ipv4_bytes)
+	case APTY_IPV6:
 		logger.Error(client, "NOT IMPLEMENTED APTY_IPV6")
 		return
-	case helper.APTY_DOMAINNAME:
+	case APTY_DOMAINNAME:
 		domainLen := uint8(buf[1])
 		addr = string(buf[2 : 2+domainLen])
 		port_bytes = buf[2+domainLen : 2+domainLen+2]
@@ -66,8 +62,8 @@ func handleCmdConnection(client *client.Client) {
 
 	binary.BigEndian.PutUint16(dstPortBytes, uint16(dstPortInt))
 
-	data := []byte{helper.VERSION, helper.REPLY_SUCCESS, helper.RSV, helper.ATYP_IPV4}
-	data = append(data, helper.Ipv4StringToBytes(dstAddr)...)
+	data := []byte{VERSION, REPLY_SUCCESS, RSV, ATYP_IPV4}
+	data = append(data, ipv4StringToBytes(dstAddr)...)
 	data = append(data, dstPortBytes...)
 
 	logger.Debug(client, "send data %X", data)
@@ -78,7 +74,8 @@ func handleCmdConnection(client *client.Client) {
 }
 
 func proxyTcp(src net.Conn, dst net.Conn) {
-	buf := make([]byte, 1024)
+	buf := bufferPool.Get()
+	defer bufferPool.Put(buf)
 
 	for {
 		n, err := src.Read(buf)
@@ -95,7 +92,7 @@ func proxyTcp(src net.Conn, dst net.Conn) {
 	}
 }
 
-func handleRequest(client *client.Client) {
+func handleRequest(client *Client) {
 	conn := client.Conn
 	var buf = make([]byte, 3)
 	conn.Read(buf)
@@ -103,12 +100,12 @@ func handleRequest(client *client.Client) {
 	cmd := buf[1]
 
 	switch cmd {
-	case helper.CMD_CONNECT:
+	case CMD_CONNECT:
 		handleCmdConnection(client)
 	}
 }
 
-func handleConn(client *client.Client) {
+func handleConn(client *Client) {
 	conn := client.Conn
 	defer conn.Close()
 
@@ -126,7 +123,7 @@ func handleConn(client *client.Client) {
 	method := chooseAuthMethod(methods)
 	err = client.SetAuthMethod(method)
 
-	if method == helper.NO_ACCEPTABLE_METHODS {
+	if method == NO_ACCEPTABLE_METHODS {
 		return
 	}
 
@@ -140,18 +137,18 @@ func handleConn(client *client.Client) {
 	handleRequest(client)
 }
 
-func authentication(client *client.Client) bool {
+func authentication(client *Client) bool {
 	conn := client.Conn
 	switch client.AuthMethod {
-	case helper.AUTH_NO:
+	case AUTH_NO:
 		return true
-	case helper.AUTH_USERNAME_PASSWORD:
+	case AUTH_USERNAME_PASSWORD:
 		// http://www.rfc-base.org/txt/rfc-1929.txt
 		var buf = make([]byte, 513)
 		_, err := conn.Read(buf)
 
 		if err != nil {
-			logger.Info(client, "read helper.AUTH_USERNAME_PASSWORD error")
+			logger.Info(client, "read AUTH_USERNAME_PASSWORD error")
 			return false
 		}
 
@@ -195,22 +192,22 @@ func chooseAuthMethod(methods []byte) byte {
 		methods_map[methods[i]] = true
 	}
 
-	if methods_map[helper.AUTH_NO] {
-		return helper.AUTH_NO
+	if methods_map[AUTH_NO] {
+		return AUTH_NO
 	} else if methods_map[byte('\x01')] {
 		return byte('\x01')
-	} else if methods_map[helper.AUTH_USERNAME_PASSWORD] {
-		return helper.AUTH_USERNAME_PASSWORD
+	} else if methods_map[AUTH_USERNAME_PASSWORD] {
+		return AUTH_USERNAME_PASSWORD
 	} else if methods_map[byte('\x03')] {
 		return byte('\x03')
 	} else if methods_map[byte('\x80')] {
 		return byte('\x80')
 	} else {
-		return helper.NO_ACCEPTABLE_METHODS
+		return NO_ACCEPTABLE_METHODS
 	}
 }
 
-func serve(addr string) {
+func Serve(addr string) {
 	listen, err := net.Listen("tcp", addr)
 
 	if err != nil {
@@ -226,11 +223,7 @@ func serve(addr string) {
 			break
 		}
 
-		client := client.NewClient(conn)
+		client := NewClient(conn)
 		go handleConn(client)
 	}
-}
-
-func main() {
-	serve("localhost:8080")
 }

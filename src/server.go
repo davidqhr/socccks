@@ -25,7 +25,7 @@ func handleClient(client *Client) {
 	methods, err := client.GetSupportAuthMethods()
 
 	if err != nil {
-		logger.Error(client, "%s", err.Error())
+		logger.Error(err.Error())
 		return
 	}
 
@@ -43,6 +43,7 @@ func handleClient(client *Client) {
 	}
 
 	if method == NoAcceptableMethods {
+		logger.Error("No acceptable methods", method)
 		return
 	}
 
@@ -86,6 +87,7 @@ func Serve(addr string) {
 		conn, err := listen.Accept()
 
 		if err != nil {
+			log.Println("Accept Error")
 			break
 		}
 

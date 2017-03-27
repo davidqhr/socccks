@@ -41,7 +41,7 @@ func handleCmdConnection(client *Client) {
 
 	port := binary.BigEndian.Uint16(portBytes)
 
-	logger.Debug(client, "addr: %s, port: %d", addr, port)
+	logger.Debug("addr", addr, "port", port)
 
 	remoteConn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", string(addr), port))
 	defer remoteConn.Close()
@@ -59,6 +59,11 @@ func handleCmdConnection(client *Client) {
 	dstPortBytes := make([]byte, 2)
 	dstPortInt, err := strconv.Atoi(dstPort)
 
+	if err != nil {
+		logger.Error(err)
+		return
+	}
+
 	binary.BigEndian.PutUint16(dstPortBytes, uint16(dstPortInt))
 
 	data := []byte{Version, ReplySuccess, Rsv, AptyIPV4}
@@ -66,7 +71,12 @@ func handleCmdConnection(client *Client) {
 	data = append(data, dstPortBytes...)
 
 	logger.Debug(client, "send data %X", data)
-	conn.Write(data)
+	_, err = conn.Write(data)
+
+	if err != nil {
+		logger.Error(err)
+		return
+	}
 
 	go proxyTcp(conn, remoteConn)
 	proxyTcp(remoteConn, conn)

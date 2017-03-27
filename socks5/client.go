@@ -3,7 +3,6 @@ package socks5
 import (
 	"errors"
 	"fmt"
-	"math/rand"
 	"net"
 )
 
@@ -14,14 +13,6 @@ type Client struct {
 }
 
 var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-
-func randStringRunes(n int) string {
-	b := make([]rune, n)
-	for i := range b {
-		b[i] = letterRunes[rand.Intn(len(letterRunes))]
-	}
-	return string(b)
-}
 
 func NewClient(conn net.Conn) *Client {
 	return &Client{
@@ -43,8 +34,8 @@ func (client *Client) GetSupportAuthMethods() ([]byte, error) {
 
 	version := buf[0]
 
-	if version != VERSION {
-		return emptyBytes, errors.New(fmt.Sprintf("DO NOT SUPPORT PROXY VERSION %X", version))
+	if version != Version {
+		return emptyBytes, errors.New(fmt.Sprintf("DO NOT SUPPORT PROXY Version %X", version))
 	}
 
 	methods_count := int(buf[1])
@@ -55,7 +46,7 @@ func (client *Client) GetSupportAuthMethods() ([]byte, error) {
 
 func (client *Client) SetAuthMethod(method byte) error {
 	client.AuthMethod = method
-	_, err := client.Conn.Write([]byte{VERSION, method})
+	_, err := client.Conn.Write([]byte{Version, method})
 	return err
 }
 

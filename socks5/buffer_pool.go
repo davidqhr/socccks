@@ -1,6 +1,6 @@
 package socks5
 
-var BUFFER_SIZE = 1024
+var bufferSize = 1024
 var freeList = make(chan []byte, 100)
 
 type BufferPool struct {
@@ -12,7 +12,7 @@ func (pool *BufferPool) Get() []byte {
 	select {
 	case buffer = <-pool.freeList:
 	default:
-		buffer = make([]byte, BUFFER_SIZE)
+		buffer = make([]byte, bufferSize)
 	}
 	return buffer
 }

@@ -7,14 +7,14 @@ import (
 	"strings"
 )
 
-func bytesToIpv4String(ip_bytes []byte) string {
+func bytesToIpv4String(ipBytes []byte) string {
 	var addr bytes.Buffer
 
-	for i := 0; i < len(ip_bytes); i++ {
+	for i := 0; i < len(ipBytes); i++ {
 		if i != 0 {
 			addr.WriteString(".")
 		}
-		addr.WriteString(fmt.Sprintf("%d", int(ip_bytes[i])))
+		addr.WriteString(fmt.Sprintf("%d", int(ipBytes[i])))
 	}
 
 	return addr.String()

@@ -1,7 +1,7 @@
 default: build
 
 build:
-	go build -v -o ./bin/socks5
+	cd cli/client; go build -v -o ../../bin/client-socks5
 
 run: build
 	./bin/socks5

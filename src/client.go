@@ -38,8 +38,8 @@ func (client *Client) GetSupportAuthMethods() ([]byte, error) {
 		return emptyBytes, errors.New(fmt.Sprintf("DO NOT SUPPORT PROXY Version %X", version))
 	}
 
-	methods_count := int(buf[1])
-	methods := buf[2 : methods_count+2]
+	methodsCount := int(buf[1])
+	methods := buf[2 : methodsCount+2]
 
 	return methods, nil
 }

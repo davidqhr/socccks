@@ -3,7 +3,13 @@ package socks5
 import (
 	"log"
 	"net"
+	"os"
+	"os/signal"
+	"sync"
+	"syscall"
 )
+
+var wg sync.WaitGroup
 
 func handleRequest(client *Client) {
 	conn := client.Conn
@@ -19,6 +25,8 @@ func handleRequest(client *Client) {
 }
 
 func handleClient(client *Client) {
+	defer wg.Done()
+
 	conn := client.Conn
 	defer conn.Close()
 
@@ -74,24 +82,54 @@ func chooseAuthMethod(methods []byte) byte {
 	}
 }
 
-func Serve(addr string) {
-	listen, err := net.Listen("tcp", addr)
+func serve(connections chan net.Conn) {
 
-	if err != nil {
-		log.Println("Server start failed")
-	} else {
-		log.Println("Server Started listen", addr)
-	}
-
-	for {
-		conn, err := listen.Accept()
-
-		if err != nil {
-			log.Println("Accept Error")
-			break
-		}
-
+	for conn := range connections {
 		client := NewClient(conn)
 		go handleClient(client)
 	}
+}
+
+func startAccepter(addr string) chan net.Conn {
+	connections := make(chan net.Conn)
+	listen, err := net.Listen("tcp", addr)
+
+	if err != nil {
+		log.Println("Listen failed", err)
+		panic("Listen failed")
+	} else {
+		log.Println("Listen on", addr)
+	}
+
+	go func() {
+		for {
+			conn, err := listen.Accept()
+
+			if err != nil {
+				log.Println("Accept Error")
+				break
+			}
+
+			connections <- conn
+			wg.Add(1)
+		}
+	}()
+
+	return connections
+}
+
+func Start(addr string) {
+	println("Pid: ", os.Getpid())
+	connections := startAccepter(addr)
+
+	quit := make(chan os.Signal)
+	signal.Notify(quit, syscall.SIGQUIT, syscall.SIGINT)
+
+	go serve(connections)
+
+	<-quit
+	close(connections)
+
+	logger.Info("Quiting...")
+	wg.Wait()
 }

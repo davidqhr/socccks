@@ -3,6 +3,7 @@ package socks5
 import (
 	"encoding/binary"
 	"fmt"
+	"io"
 	"net"
 	"strconv"
 	"strings"
@@ -10,6 +11,7 @@ import (
 
 func handleCmdConnection(client *Client) {
 	conn := client.Conn
+	// conn.SetDeadline(time.Now().Add(5000))
 	buf := make([]byte, 100)
 
 	_, err := conn.Read(buf)
@@ -44,6 +46,7 @@ func handleCmdConnection(client *Client) {
 	logger.Debug("addr", addr, "port", port)
 
 	remoteConn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", string(addr), port))
+	// remoteConn.SetDeadline(time.Now().Add(5000))
 	defer remoteConn.Close()
 
 	if err != nil {
@@ -51,8 +54,7 @@ func handleCmdConnection(client *Client) {
 		return
 	}
 
-	addrAndPort := make([]string, 2)
-	addrAndPort = strings.Split(conn.LocalAddr().String(), ":")
+	addrAndPort := strings.Split(remoteConn.LocalAddr().String(), ":")
 	dstAddr := addrAndPort[0]
 	dstPort := addrAndPort[1]
 
@@ -70,7 +72,7 @@ func handleCmdConnection(client *Client) {
 	data = append(data, ipv4StringToBytes(dstAddr)...)
 	data = append(data, dstPortBytes...)
 
-	logger.Debug(client, "send data %X", data)
+	logger.Debug("send data", data)
 	_, err = conn.Write(data)
 
 	if err != nil {
@@ -78,6 +80,6 @@ func handleCmdConnection(client *Client) {
 		return
 	}
 
-	go proxyTcp(conn, remoteConn)
-	proxyTcp(remoteConn, conn)
+	go io.Copy(conn, remoteConn)
+	io.Copy(remoteConn, conn)
 }

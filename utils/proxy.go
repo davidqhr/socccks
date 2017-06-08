@@ -86,6 +86,7 @@ func ReadThenDecrypt(src io.Reader, buf []byte, encryptor *Encryptor) (decrypted
 	// fmt.Printf("[debug] encrypted: %v, ", buf[:dataLen])
 	decryptedBytes = encryptor.CFBDecrypter(buf[:dataLen])
 	// fmt.Printf("raw: %v\n", decryptedBytes)
+	// fmt.Printf("%v %s", decryptedBytes, decryptedBytes)
 	// decryptedBytesLength := len(decryptedBytes)
 	return
 }

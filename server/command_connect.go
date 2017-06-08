@@ -4,8 +4,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"net"
-	"strconv"
-	"strings"
 
 	"github.com/davidqhr/socccks/utils"
 )
@@ -40,23 +38,24 @@ func handleCmdConnection(conn net.Conn, buf []byte) {
 
 	defer remoteConn.Close()
 
-	addrAndPort := strings.Split(remoteConn.LocalAddr().String(), ":")
-	dstAddr := addrAndPort[0]
-	dstPort := addrAndPort[1]
+	// addrAndPort := strings.Split(remoteConn.LocalAddr().String(), ":")
+	// dstAddr := addrAndPort[0]
+	// dstPort := addrAndPort[1]
+	// //
+	// dstPortBytes := make([]byte, 2)
+	// dstPortInt, err := strconv.Atoi(dstPort)
+	// //
+	// if err != nil {
+	// 	println(err)
+	// 	return
+	// }
 	//
-	dstPortBytes := make([]byte, 2)
-	dstPortInt, err := strconv.Atoi(dstPort)
-	//
-	if err != nil {
-		println(err)
-		return
-	}
+	// binary.BigEndian.PutUint16(dstPortBytes, uint16(dstPortInt))
 
-	binary.BigEndian.PutUint16(dstPortBytes, uint16(dstPortInt))
-
-	data := []byte{utils.Version, utils.ReplySuccess, utils.Rsv, utils.AptyIPV4}
-	data = append(data, net.ParseIP(dstAddr)...)
-	data = append(data, dstPortBytes...)
+	data := []byte{utils.Version, utils.ReplySuccess, utils.Rsv, utils.AptyIPV4, 0, 0, 0, 0, 0, 0}
+	// fmt.Printf("ip: %v %s", net.ParseIP(dstAddr), net.ParseIP(dstAddr))
+	// data = append(data, net.ParseIP(dstAddr)...)
+	// data = append(data, dstPortBytes...)
 
 	encryptor := utils.NewEncryptor("test")
 	_, err = utils.EncryptThenWrite(conn, data, encryptor)

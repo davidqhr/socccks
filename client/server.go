@@ -24,8 +24,8 @@ func proxyToServer(client *Client, serverAddr string) {
 
 	defer eConn.Conn.Close()
 
-	go io.CopyBuffer(eConn, client.Conn)
-	io.CopyBuffer(client.Conn, eConn)
+	go io.Copy(eConn, client.Conn)
+	io.Copy(client.Conn, eConn)
 }
 
 func handleClient(client *Client, serverAddr string) {

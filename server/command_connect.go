@@ -66,9 +66,6 @@ func handleCmdConnection(eConn *utils.EncryptedConn, buf []byte) {
 		return
 	}
 
-	buffer1 := make([]byte, 1024*31)
-	buffer2 := make([]byte, 1024*31)
-
-	go io.CopyBuffer(remoteConn, eConn, buffer1)
-	io.CopyBuffer(eConn, remoteConn, buffer2)
+	go io.Copy(remoteConn, eConn)
+	io.Copy(eConn, remoteConn)
 }

@@ -15,12 +15,11 @@ func handleCmdConnection(conn net.Conn, buf []byte) {
 	var addr string
 	portBytes := make([]byte, 2)
 
-	// logger.Debug(client, "addrType: %X", addrType)
 	switch addrType {
 	case utils.AptyIPV4:
 		ipv4Bytes := buf[1:5]
 		portBytes = buf[5:7]
-		addr = utils.BytesToIpv4String(ipv4Bytes)
+		addr = net.IP(ipv4Bytes).String()
 	case utils.AptyIPV6:
 		println("NOT IMPLEMENTED APTY_IPV6")
 		return
@@ -56,7 +55,7 @@ func handleCmdConnection(conn net.Conn, buf []byte) {
 	binary.BigEndian.PutUint16(dstPortBytes, uint16(dstPortInt))
 
 	data := []byte{utils.Version, utils.ReplySuccess, utils.Rsv, utils.AptyIPV4}
-	data = append(data, utils.Ipv4StringToBytes(dstAddr)...)
+	data = append(data, net.ParseIP(dstAddr)...)
 	data = append(data, dstPortBytes...)
 
 	encryptor := utils.NewEncryptor("test")

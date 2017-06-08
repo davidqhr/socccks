@@ -11,8 +11,8 @@ import (
 )
 
 func proxyToServer(client *Client) {
-	// remoteConn, err := net.Dial("tcp", "139.162.68.4:8112")
-	remoteConn, err := net.Dial("tcp", "localhost:8112")
+	remoteConn, err := net.Dial("tcp", "139.162.68.4:8112")
+	// remoteConn, err := net.Dial("tcp", "localhost:8112")
 
 	if err != nil {
 		logger.Info(err)
@@ -85,7 +85,6 @@ func chooseAuthMethod(methods []byte) byte {
 }
 
 func Start(addr string) {
-	println("Pid: ", os.Getpid())
 	connections := utils.StartAccepter(addr, 100)
 
 	quit := make(chan os.Signal)

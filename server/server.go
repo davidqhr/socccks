@@ -29,8 +29,7 @@ func handleConn(conn net.Conn) {
 }
 
 // start socccks server
-func Start(addr string) {
-	println("Pid: ", os.Getpid())
+func Start(addr string, daemon bool) {
 	connections := utils.StartAccepter(addr, 100)
 
 	quit := make(chan os.Signal)

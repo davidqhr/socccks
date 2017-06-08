@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"log"
 	"net"
 )
@@ -11,9 +10,9 @@ func StartAccepter(addr string, connectionsPoolSize int) (connections chan net.C
 	connections = make(chan net.Conn, connectionsPoolSize)
 
 	if err != nil {
-		panic(fmt.Sprintf("Listen failed: %s", addr))
+		log.Fatalln(err)
 	} else {
-		log.Println("Listen on", addr, "(poolSize:", connectionsPoolSize, ")")
+		log.Printf("Listen on: %s, ( poolSize: %d )\n", addr, connectionsPoolSize)
 	}
 
 	go func() {
@@ -28,7 +27,6 @@ func StartAccepter(addr string, connectionsPoolSize int) (connections chan net.C
 			println("new connections in")
 
 			connections <- conn
-			// (*wg).Add(1)
 		}
 	}()
 

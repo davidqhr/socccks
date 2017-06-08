@@ -48,8 +48,8 @@ func (e *Encryptor) CFBDecrypter(ciphertext []byte, buf []byte) int {
 	ciphertext = ciphertext[aes.BlockSize:]
 
 	dataLength := len(ciphertext)
-	if dataLength > cap(buf) {
-		log.Fatalln("CFBDecrypter buf is too small", dataLength, cap(buf))
+	if dataLength > len(buf) {
+		log.Fatalln("CFBDecrypter buf is too small", dataLength, len(buf))
 	}
 
 	stream := cipher.NewCFBDecrypter(block, iv)
@@ -65,8 +65,8 @@ func (e *Encryptor) CFBEncrypter(plaintext []byte, buf []byte) int {
 	}
 	textLength := len(plaintext)
 
-	if textLength+aes.BlockSize > cap(buf) {
-		log.Fatalln("CFBEncrypter buf is too small", textLength+aes.BlockSize, cap(buf))
+	if textLength+aes.BlockSize > len(buf) {
+		log.Fatalln("CFBEncrypter buf is too small", textLength+aes.BlockSize, len(buf))
 	}
 
 	iv := buf[:aes.BlockSize]

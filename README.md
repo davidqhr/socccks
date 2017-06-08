@@ -38,19 +38,19 @@ Socccks is a separated socks5 proxy. It allows you to access some resources that
 
 ### server side
 
-```yaml
-# config.file
-address: 0.0.0.0
-
-daemon: true
-# only work in daemon model
-log_file: /tmp/socccks.stdout
-err_file: /tmp/socccks.stderr
-
-passwords:
-  hello world: 8112
-  david: 8113
-  monika: 8114
+```json
+# config.json
+{
+  "address": "0.0.0.0",
+  "daemon": true,
+  "log_file": "/tmp/socccks.stdout",
+  "err_file": "/tmp/socccks.stderr",
+  "passwords": {
+    "hello world": 8112,
+    "david": 8113,
+    "monika": 8114,
+  }
+}
 ```
 
 ```bash

@@ -1,11 +1,13 @@
-package socks5
+package client
+
+import "github.com/davidqhr/socccks/utils"
 
 func authentication(client *Client) bool {
 	conn := client.Conn
 	switch client.AuthMethod {
-	case AuthNo:
+	case utils.AuthNo:
 		return true
-	case AuthUsernamePassword:
+	case utils.AuthUsernamePassword:
 		// http://www.rfc-base.org/txt/rfc-1929.txt
 		buf := bufferPool.Get()
 		defer bufferPool.Put(buf)

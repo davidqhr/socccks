@@ -1,4 +1,4 @@
-package socks5
+package utils
 
 // global
 var Version = byte('\x05')

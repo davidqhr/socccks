@@ -1,4 +1,4 @@
-package socks5
+package client
 
 var bufferSize = 1024 * 32
 var freeList = make(chan []byte, 100)

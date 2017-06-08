@@ -1,9 +1,11 @@
-package socks5
+package client
 
 import (
-	"errors"
 	"fmt"
+	"io"
 	"net"
+
+	"github.com/davidqhr/socccks/utils"
 )
 
 type Client struct {
@@ -21,32 +23,39 @@ func NewClient(conn net.Conn) *Client {
 	}
 }
 
-func (client *Client) GetSupportAuthMethods() ([]byte, error) {
+func (client *Client) GetSupportAuthMethods() (methods []byte, err error) {
 	conn := client.Conn
 	var buf = make([]byte, 100)
-	var emptyBytes = make([]byte, 0)
+	_, er := io.ReadFull(conn, buf[:2])
 
-	_, err := conn.Read(buf)
-
-	if err != nil {
-		return emptyBytes, err
+	if er != nil {
+		err = er
+		return
 	}
 
 	version := buf[0]
 
-	if version != Version {
-		return emptyBytes, errors.New(fmt.Sprintf("DO NOT SUPPORT PROXY Version %X", version))
+	if version != utils.Version {
+		err = fmt.Errorf("DO NOT SUPPORT PROXY Version %X", version)
+		return
 	}
 
 	methodsCount := int(buf[1])
-	methods := buf[2 : methodsCount+2]
 
-	return methods, nil
+	_, er = io.ReadFull(conn, buf[:methodsCount])
+
+	if er != nil {
+		err = er
+		return
+	}
+
+	methods = buf[:methodsCount]
+	return
 }
 
 func (client *Client) SetAuthMethod(method byte) error {
 	client.AuthMethod = method
-	_, err := client.Conn.Write([]byte{Version, method})
+	_, err := client.Conn.Write([]byte{utils.Version, method})
 	return err
 }
 

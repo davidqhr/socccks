@@ -9,20 +9,9 @@ import (
 
 func main() {
 	app := cli.NewApp()
-	app.Name = "ss-local"
-	app.Usage = "A go port ShadowSock client"
-	app.Version = ""
-
-	app.Commands = []cli.Command{
-		cli.Command{
-			Name:  "status",
-			Usage: "show client running status",
-			Action: func(c *cli.Context) error {
-				println("not implement yet")
-				return nil
-			},
-		},
-	}
+	app.Name = "socccks-local"
+	app.Usage = "Separated Encrypted socks5 proxy client execution"
+	app.Version = "0.0.1"
 
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
@@ -68,7 +57,7 @@ func main() {
 
 		println(daemonMode, serverIP, serverPort, password)
 
-		client.Start("localhost:8111")
+		client.Start("0.0.0.0:8111")
 
 		return nil
 	}

@@ -25,7 +25,7 @@ func NewEncryptedConn(conn net.Conn, password string) *EncryptedConn {
 func (ec *EncryptedConn) Write(rawData []byte) (nw int, err error) {
 	encryptor := ec.Encryptor
 
-	writeBuf := make([]byte, 1024*65)
+	writeBuf := make([]byte, 1024*33)
 	encryptBytesLength := encryptor.CFBEncrypter(rawData, writeBuf[2:])
 
 	binary.BigEndian.PutUint16(writeBuf[:2], uint16(encryptBytesLength))
@@ -52,7 +52,7 @@ func (ec *EncryptedConn) Write(rawData []byte) (nw int, err error) {
 func (ec *EncryptedConn) Read(buf []byte) (rn int, err error) {
 	encryptor := ec.Encryptor
 
-	readBuffer := make([]byte, 1024*65)
+	readBuffer := make([]byte, 1024*33)
 
 	if _, er := io.ReadFull(ec.Conn, readBuffer[:2]); er != nil {
 		if er == io.EOF {

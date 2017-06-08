@@ -34,7 +34,6 @@ func formatKey(rawKey []byte) (key []byte) {
 }
 
 func (e *Encryptor) CFBDecrypter(ciphertext []byte, buf []byte) int {
-	println("CFBDecrypter", buf)
 	block, err := aes.NewCipher(e.key)
 
 	if err != nil {

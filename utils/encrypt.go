@@ -6,6 +6,7 @@ import (
 	"crypto/md5"
 	"crypto/rand"
 	"io"
+	"log"
 )
 
 type Encryptor struct {
@@ -48,7 +49,7 @@ func (e *Encryptor) CFBDecrypter(ciphertext []byte, buf []byte) int {
 
 	dataLength := len(ciphertext)
 	if dataLength > cap(buf) {
-		panic("buf is too small")
+		log.Fatalln("CFBDecrypter buf is too small", dataLength, cap(buf))
 	}
 
 	stream := cipher.NewCFBDecrypter(block, iv)
@@ -65,7 +66,7 @@ func (e *Encryptor) CFBEncrypter(plaintext []byte, buf []byte) int {
 	textLength := len(plaintext)
 
 	if textLength+aes.BlockSize > cap(buf) {
-		panic("buf is too small")
+		log.Fatalln("CFBEncrypter buf is too small", textLength+aes.BlockSize, cap(buf))
 	}
 
 	iv := buf[:aes.BlockSize]

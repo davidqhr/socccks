@@ -16,15 +16,15 @@ func main() {
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:  "server, s",
-			Usage: "remote shadowsocks server ip",
+			Usage: "remote server address",
 		},
 		cli.StringFlag{
-			Name:  "port, p",
-			Usage: "remote shadowsocks server port",
+			Name:  "local, l",
+			Usage: "local socks5 address",
 		},
 		cli.StringFlag{
-			Name:  "password, P",
-			Usage: "password to connect shadowsocks server",
+			Name:  "password, p",
+			Usage: "password to connect remote server",
 		},
 		cli.BoolFlag{
 			Name:  "daemon, d",
@@ -39,25 +39,25 @@ func main() {
 		}
 
 		daemonMode := c.GlobalBool("daemon")
-		serverIP := c.GlobalString("server")
-		serverPort := c.GlobalString("port")
+		server := c.GlobalString("server")
+		local := c.GlobalString("local")
 		password := c.GlobalString("password")
 
-		if serverIP == "" {
-			return cli.NewExitError("need server ip", 1)
+		if server == "" {
+			return cli.NewExitError("need server address", 1)
 		}
 
-		if serverPort == "" {
-			return cli.NewExitError("need server port", 1)
+		if local == "" {
+			return cli.NewExitError("need local address", 1)
 		}
 
 		if password == "" {
 			return cli.NewExitError("need password", 1)
 		}
 
-		println(daemonMode, serverIP, serverPort, password)
+		println(server, local, daemonMode)
 
-		client.Start("0.0.0.0:8111")
+		client.Start(local, server, password)
 
 		return nil
 	}

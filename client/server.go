@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"io"
 	"net"
 	"os"
 	"os/signal"
@@ -10,22 +11,27 @@ import (
 	"github.com/davidqhr/socccks/utils"
 )
 
-func proxyToServer(client *Client) {
-	remoteConn, err := net.Dial("tcp", "139.162.68.4:8112")
-	// remoteConn, err := net.Dial("tcp", "localhost:8112")
+func proxyToServer(client *Client, serverAddr string) {
+	remoteConn, err := net.Dial("tcp", serverAddr)
 
 	if err != nil {
 		logger.Info(err)
 		return
 	}
 
-	defer remoteConn.Close()
+	eConn := utils.NewEncryptedConn(remoteConn, client.Password)
+	// remoteConn, err := net.Dial("tcp", "localhost:8112")
 
-	go utils.EncryptThenProxy(remoteConn, client.Conn)
-	utils.ProxyThenDecrypt(client.Conn, remoteConn)
+	defer eConn.Conn.Close()
+
+	buffer1 := make([]byte, 1024*65)
+	buffer2 := make([]byte, 1024*65)
+
+	go io.CopyBuffer(eConn, client.Conn, buffer1)
+	io.CopyBuffer(client.Conn, eConn, buffer2)
 }
 
-func handleClient(client *Client) {
+func handleClient(client *Client, serverAddr string) {
 	conn := client.Conn
 	defer conn.Close()
 
@@ -64,7 +70,7 @@ func handleClient(client *Client) {
 	}
 	println("[debug] Auth success\n")
 
-	proxyToServer(client)
+	proxyToServer(client, serverAddr)
 }
 
 func chooseAuthMethod(methods []byte) byte {
@@ -84,8 +90,8 @@ func chooseAuthMethod(methods []byte) byte {
 	}
 }
 
-func Start(addr string) {
-	connections := utils.StartAccepter(addr, 100)
+func Start(localAddr string, serverAddr string, password string) {
+	connections := utils.StartAccepter(localAddr, 100)
 
 	quit := make(chan os.Signal)
 	signal.Notify(quit, syscall.SIGQUIT, syscall.SIGINT)
@@ -93,8 +99,8 @@ func Start(addr string) {
 	// serve conn from connections until connections closed
 	go func(*chan net.Conn) {
 		for conn := range connections {
-			client := NewClient(conn)
-			go handleClient(client)
+			client := NewClient(conn, password)
+			go handleClient(client, serverAddr)
 		}
 	}(&connections)
 

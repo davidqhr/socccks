@@ -11,8 +11,6 @@ func StartAccepter(addr string, connectionsPoolSize int) (connections chan net.C
 
 	if err != nil {
 		log.Fatalln(err)
-	} else {
-		log.Printf("Listen on: %s, ( poolSize: %d )\n", addr, connectionsPoolSize)
 	}
 
 	go func() {

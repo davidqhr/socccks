@@ -3,12 +3,13 @@ package server
 import (
 	"encoding/binary"
 	"fmt"
+	"io"
 	"net"
 
 	"github.com/davidqhr/socccks/utils"
 )
 
-func handleCmdConnection(conn net.Conn, buf []byte) {
+func handleCmdConnection(eConn *utils.EncryptedConn, buf []byte) {
 	addrType := buf[0]
 	var addr string
 	portBytes := make([]byte, 2)
@@ -32,7 +33,7 @@ func handleCmdConnection(conn net.Conn, buf []byte) {
 
 	remoteConn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", string(addr), port))
 	if err != nil {
-		println("Connect remote Failed %s", conn.LocalAddr().String())
+		println("Connect remote Failed %s", eConn.Conn.LocalAddr().String())
 		return
 	}
 
@@ -57,14 +58,17 @@ func handleCmdConnection(conn net.Conn, buf []byte) {
 	// data = append(data, net.ParseIP(dstAddr)...)
 	// data = append(data, dstPortBytes...)
 
-	encryptor := utils.NewEncryptor("test")
-	_, err = utils.EncryptThenWrite(conn, data, encryptor)
+	// _, err = utils.EncryptThenWrite(conn, data, encryptor)
+	_, err = eConn.Write(data)
 
 	if err != nil {
 		println(err)
 		return
 	}
 
-	go utils.ProxyThenDecrypt(remoteConn, conn)
-	utils.EncryptThenProxy(conn, remoteConn)
+	buffer1 := make([]byte, 1024*65)
+	buffer2 := make([]byte, 1024*65)
+
+	go io.CopyBuffer(remoteConn, eConn, buffer1)
+	io.CopyBuffer(eConn, remoteConn, buffer2)
 }

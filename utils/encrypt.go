@@ -32,8 +32,9 @@ func formatKey(rawKey []byte) (key []byte) {
 	return append(MD5Summary, MD5SummarySummary[:]...)
 }
 
-func (e *Encryptor) CFBDecrypter(ciphertext []byte) []byte {
+func (e *Encryptor) CFBDecrypter(ciphertext []byte, buf []byte) int {
 	block, err := aes.NewCipher(e.key)
+
 	if err != nil {
 		panic(err)
 	}
@@ -45,26 +46,35 @@ func (e *Encryptor) CFBDecrypter(ciphertext []byte) []byte {
 	iv := ciphertext[:aes.BlockSize]
 	ciphertext = ciphertext[aes.BlockSize:]
 
-	stream := cipher.NewCFBDecrypter(block, iv)
+	dataLength := len(ciphertext)
+	if dataLength > cap(buf) {
+		panic("buf is too small")
+	}
 
-	stream.XORKeyStream(ciphertext, ciphertext)
-	return ciphertext
+	stream := cipher.NewCFBDecrypter(block, iv)
+	stream.XORKeyStream(buf, ciphertext)
+
+	return dataLength
 }
 
-func (e *Encryptor) CFBEncrypter(plaintext []byte) []byte {
+func (e *Encryptor) CFBEncrypter(plaintext []byte, buf []byte) int {
 	block, err := aes.NewCipher(e.key)
 	if err != nil {
 		panic(err)
 	}
+	textLength := len(plaintext)
 
-	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
-	iv := ciphertext[:aes.BlockSize]
+	if textLength+aes.BlockSize > cap(buf) {
+		panic("buf is too small")
+	}
+
+	iv := buf[:aes.BlockSize]
 	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
 		panic(err)
 	}
 
 	stream := cipher.NewCFBEncrypter(block, iv)
-	stream.XORKeyStream(ciphertext[aes.BlockSize:], plaintext)
+	stream.XORKeyStream(buf[aes.BlockSize:], plaintext)
 
-	return ciphertext
+	return textLength + aes.BlockSize
 }

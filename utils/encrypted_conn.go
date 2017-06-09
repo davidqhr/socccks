@@ -7,13 +7,18 @@ import (
 	"net"
 )
 
+// EncryptedConn is a sort of encrypted connection between socccks-client and socccks-server
 type EncryptedConn struct {
 	Conn      net.Conn
 	Encryptor *Encryptor
 }
 
-// data protocol (bytes)
-// length 2, iv 32, data ...
+// encrypted data protocol (bytes)
+// header:
+//   length 2
+// body:
+//   iv 32
+//   encryptedData ...
 
 func NewEncryptedConn(conn net.Conn, password string) *EncryptedConn {
 	return &EncryptedConn{
@@ -22,6 +27,7 @@ func NewEncryptedConn(conn net.Conn, password string) *EncryptedConn {
 	}
 }
 
+// encrypt plainText, then write them to the socket
 func (ec *EncryptedConn) Write(rawData []byte) (nw int, err error) {
 	encryptor := ec.Encryptor
 
@@ -45,10 +51,14 @@ func (ec *EncryptedConn) Write(rawData []byte) (nw int, err error) {
 		return
 	}
 
+	// In other place, I use io.Copy to proxy data between conns,
+	// io.Copy requires the length of data received from src conn to be as same as the length of data written to the dst conn.
+	// So it's necessary to return "expected data" length instead of the "real data length"
 	nw = encryptBytesLength - 2 - aes.BlockSize
 	return
 }
 
+// read Encrypted data, fill buf with plainText
 func (ec *EncryptedConn) Read(buf []byte) (rn int, err error) {
 	encryptor := ec.Encryptor
 

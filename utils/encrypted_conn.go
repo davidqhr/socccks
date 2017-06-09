@@ -55,12 +55,13 @@ func (ec *EncryptedConn) Read(buf []byte) (rn int, err error) {
 	readBuffer := make([]byte, 1024*33)
 
 	if _, er := io.ReadFull(ec.Conn, readBuffer[:2]); er != nil {
+		err = er
+
 		if er == io.EOF {
 			return
 		}
 
 		println("read encrytped data length error")
-		err = er
 		return
 	}
 
@@ -68,11 +69,12 @@ func (ec *EncryptedConn) Read(buf []byte) (rn int, err error) {
 
 	_, er := io.ReadFull(ec.Conn, readBuffer[:dataLen])
 	if er != nil {
+		err = er
+
 		if er == io.EOF {
 			return
 		}
 		println("can't read full encrytped data")
-		err = er
 		return
 	}
 

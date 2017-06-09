@@ -3,6 +3,7 @@ package client
 import (
 	"fmt"
 	"io"
+	"log"
 	"net"
 	"os"
 	"os/signal"
@@ -15,7 +16,7 @@ func proxyToServer(client *Client, serverAddr string) {
 	remoteConn, err := net.Dial("tcp", serverAddr)
 
 	if err != nil {
-		logger.Info(err)
+		log.Println(err)
 		return
 	}
 
@@ -35,12 +36,12 @@ func handleClient(client *Client, serverAddr string) {
 	methods, err := client.GetSupportAuthMethods()
 
 	if err != nil {
-		logger.Error(err.Error())
+		log.Println(err.Error())
 		return
 	}
 
 	if len(methods) == 0 {
-		logger.Error("no auth methods")
+		log.Println("no auth methods")
 		return
 	}
 
@@ -50,12 +51,12 @@ func handleClient(client *Client, serverAddr string) {
 	err = client.SetAuthMethod(method)
 
 	if err != nil {
-		logger.Error("Set Auth Method Failed", err)
+		log.Println("Set Auth Method Failed", err)
 		return
 	}
 
 	if method == utils.NoAcceptableMethods {
-		logger.Error("No acceptable methods", method)
+		log.Println("No acceptable methods", method)
 		return
 	}
 
@@ -107,6 +108,6 @@ func Start(localAddr string, serverAddr string, password string) {
 
 	// graceful exit
 	// TODO: client timeout
-	logger.Info("Quiting...")
+	log.Println("Quiting...")
 	// wg.Wait()
 }

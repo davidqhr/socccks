@@ -1,6 +1,10 @@
 package client
 
-import "github.com/davidqhr/socccks/utils"
+import (
+	"log"
+
+	"github.com/davidqhr/socccks/utils"
+)
 
 func authentication(client *Client) bool {
 	conn := client.Conn
@@ -15,14 +19,14 @@ func authentication(client *Client) bool {
 		_, err := conn.Read(buf)
 
 		if err != nil {
-			logger.Info(client, "read AUTH_USERNAME_PASSWORD error")
+			log.Printf("read AUTH_USERNAME_PASSWORD error")
 			return false
 		}
 
 		usernameLen := int(buf[1])
 
 		if usernameLen > 255 || usernameLen < 1 {
-			logger.Error(client, "username size error [1-255]")
+			log.Printf("username size error [1-255]")
 			return false
 		}
 
@@ -31,13 +35,13 @@ func authentication(client *Client) bool {
 		passwordLen := int(buf[1+1+usernameLen])
 
 		if passwordLen > 255 || passwordLen < 1 {
-			logger.Error(client, "password size error [1-255]")
+			log.Printf("password size error [1-255]")
 			return false
 		}
 
 		password := buf[1+1+usernameLen+1 : 1+1+usernameLen+1+passwordLen]
 
-		logger.Info(client, "username: %s, password: %s", string(username), string(password))
+		log.Printf("username: %s, password: %s", string(username), string(password))
 
 		// TODO real auth
 		err = client.AuthSuccess()

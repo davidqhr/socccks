@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/davidqhr/socccks/utils"
@@ -14,12 +13,11 @@ func handleConn(eConn *utils.EncryptedConn) {
 	_, err := eConn.Read(buf)
 
 	if err != nil {
-		println(err)
+		log.Println(err)
 		return
 	}
 
 	cmd := buf[1]
-	fmt.Printf("[debug] command received: %v\n", cmd)
 
 	switch cmd {
 	case utils.CmdConnect:
@@ -29,9 +27,9 @@ func handleConn(eConn *utils.EncryptedConn) {
 
 // start socccks server
 func Start(addr string, password string) {
-	connections := utils.StartAccepter(addr, 100)
+	connections := utils.StartAccepter(addr, 100) // poolSize
 
-	log.Printf("Listen on: %s, ( poolSize: %d )\n", addr, 100)
+	log.Printf("Listen on: %s\n", addr)
 
 	for conn := range connections {
 		eConn := utils.NewEncryptedConn(conn, password)

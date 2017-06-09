@@ -4,6 +4,7 @@ import (
 	"crypto/aes"
 	"encoding/binary"
 	"io"
+	"log"
 	"net"
 )
 
@@ -39,8 +40,6 @@ func (ec *EncryptedConn) Write(rawData []byte) (nw int, err error) {
 	binary.BigEndian.PutUint16(writeBuf[:2], uint16(encryptBytesLength))
 	encryptBytesLength += 2
 
-	// fmt.Printf("[debug] raw: %v, encrypted: %v\n", rawData, writeBuf[:encryptBytesLength])
-
 	nw, ew := ec.Conn.Write(writeBuf[:encryptBytesLength])
 
 	if ew != nil {
@@ -74,7 +73,7 @@ func (ec *EncryptedConn) Read(buf []byte) (rn int, err error) {
 			return
 		}
 
-		println("read encrytped data length error")
+		log.Println("read encrytped data length error")
 		return
 	}
 
@@ -87,13 +86,12 @@ func (ec *EncryptedConn) Read(buf []byte) (rn int, err error) {
 		if er == io.EOF {
 			return
 		}
-		println("can't read full encrytped data")
+
+		log.Println("can't read full encrytped data")
 		return
 	}
 
-	// fmt.Printf("[debug] encrypted: %v, ", readBuffer[:dataLen])
 	rn = encryptor.CFBDecrypter(readBuffer[:dataLen], buf)
-	// fmt.Printf("raw: %v\n", buf[:rn])
 
 	return
 }

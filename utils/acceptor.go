@@ -18,11 +18,9 @@ func StartAccepter(addr string, connectionsPoolSize int) (connections chan net.C
 			conn, err := listen.Accept()
 
 			if err != nil {
-				log.Println("[DEBUG] accept error")
+				log.Println("Accept error", err)
 				break
 			}
-
-			log.Println("[DEBUG] new connections in")
 
 			connections <- conn
 		}

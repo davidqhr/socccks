@@ -38,7 +38,7 @@ func main() {
 			return nil
 		}
 
-		daemonMode := c.GlobalBool("daemon")
+		// daemonMode := c.GlobalBool("daemon")
 		server := c.GlobalString("server")
 		local := c.GlobalString("local")
 		password := c.GlobalString("password")
@@ -54,8 +54,6 @@ func main() {
 		if password == "" {
 			return cli.NewExitError("need password", 1)
 		}
-
-		println(server, local, daemonMode)
 
 		client.Start(local, server, password)
 

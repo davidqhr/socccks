@@ -1,7 +1,6 @@
 package client
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"net"
@@ -46,7 +45,6 @@ func handleClient(client *Client, serverAddr string) {
 	}
 
 	method := chooseAuthMethod(methods)
-	fmt.Printf("[debug] support auth methods: %v, choose auth method: %v\n", methods, method)
 
 	err = client.SetAuthMethod(method)
 
@@ -63,10 +61,9 @@ func handleClient(client *Client, serverAddr string) {
 	ok := authentication(client)
 
 	if !ok {
-		println("[debug] Auth failed\n")
+		log.Println("Auth failed")
 		return
 	}
-	println("[debug] Auth success\n")
 
 	proxyToServer(client, serverAddr)
 }

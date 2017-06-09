@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"log"
 	"net"
 
 	"github.com/davidqhr/socccks/utils"
@@ -20,7 +21,7 @@ func handleCmdConnection(eConn *utils.EncryptedConn, buf []byte) {
 		portBytes = buf[5:7]
 		addr = net.IP(ipv4Bytes).String()
 	case utils.AptyIPV6:
-		println("NOT IMPLEMENTED APTY_IPV6")
+		log.Println("NOT IMPLEMENTED APTY_IPV6")
 		return
 	case utils.AptyDomainName:
 		domainLen := uint8(buf[1])
@@ -29,40 +30,21 @@ func handleCmdConnection(eConn *utils.EncryptedConn, buf []byte) {
 	}
 
 	port := binary.BigEndian.Uint16(portBytes)
-	println("addr", addr, "port", port)
+	log.Println("addr", addr, "port", port)
 
 	remoteConn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", string(addr), port))
 	if err != nil {
-		println("Connect remote Failed %s", eConn.Conn.LocalAddr().String())
+		log.Printf("Connect remote Failed %s\n", eConn.Conn.LocalAddr().String())
 		return
 	}
 
 	defer remoteConn.Close()
 
-	// addrAndPort := strings.Split(remoteConn.LocalAddr().String(), ":")
-	// dstAddr := addrAndPort[0]
-	// dstPort := addrAndPort[1]
-	// //
-	// dstPortBytes := make([]byte, 2)
-	// dstPortInt, err := strconv.Atoi(dstPort)
-	// //
-	// if err != nil {
-	// 	println(err)
-	// 	return
-	// }
-	//
-	// binary.BigEndian.PutUint16(dstPortBytes, uint16(dstPortInt))
-
 	data := []byte{utils.Version, utils.ReplySuccess, utils.Rsv, utils.AptyIPV4, 0, 0, 0, 0, 0, 0}
-	// fmt.Printf("ip: %v %s", net.ParseIP(dstAddr), net.ParseIP(dstAddr))
-	// data = append(data, net.ParseIP(dstAddr)...)
-	// data = append(data, dstPortBytes...)
-
-	// _, err = utils.EncryptThenWrite(conn, data, encryptor)
 	_, err = eConn.Write(data)
 
 	if err != nil {
-		println(err)
+		log.Println(err)
 		return
 	}
 

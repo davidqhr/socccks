@@ -9,7 +9,6 @@ import (
 )
 
 type Client struct {
-	Id         string
 	Conn       net.Conn
 	AuthMethod byte
 	Password   string
@@ -20,7 +19,6 @@ var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 func NewClient(conn net.Conn, password string) *Client {
 	return &Client{
 		Conn:     conn,
-		Id:       randStringRunes(32),
 		Password: password,
 	}
 }

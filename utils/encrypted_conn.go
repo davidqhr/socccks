@@ -9,7 +9,7 @@ import (
 
 // EncryptedConn is a sort of encrypted connection between socccks-client and socccks-server
 type EncryptedConn struct {
-	Conn      net.Conn
+	net.Conn
 	Encryptor *Encryptor
 }
 
@@ -31,8 +31,8 @@ func NewEncryptedConn(conn net.Conn, password string) *EncryptedConn {
 func (ec *EncryptedConn) Write(rawData []byte) (nw int, err error) {
 	encryptor := ec.Encryptor
 
-	writeBuf := BufPool.Get()
-	defer BufPool.Put(writeBuf)
+	writeBuf := Pool33K.Get()
+	defer Pool33K.Put(writeBuf)
 
 	encryptBytesLength := encryptor.CFBEncrypter(rawData, writeBuf[2:])
 
@@ -62,8 +62,8 @@ func (ec *EncryptedConn) Write(rawData []byte) (nw int, err error) {
 func (ec *EncryptedConn) Read(buf []byte) (rn int, err error) {
 	encryptor := ec.Encryptor
 
-	readBuffer := BufPool.Get()
-	defer BufPool.Put(readBuffer)
+	readBuffer := Pool33K.Get()
+	defer Pool33K.Put(readBuffer)
 
 	if _, er := io.ReadFull(ec.Conn, readBuffer[:2]); er != nil {
 		err = er

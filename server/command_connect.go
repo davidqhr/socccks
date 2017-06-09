@@ -3,7 +3,6 @@ package server
 import (
 	"encoding/binary"
 	"fmt"
-	"io"
 	"log"
 	"net"
 
@@ -48,6 +47,6 @@ func handleCmdConnection(eConn *utils.EncryptedConn, buf []byte) {
 		return
 	}
 
-	go io.Copy(remoteConn, eConn)
-	io.Copy(eConn, remoteConn)
+	go utils.Copy(remoteConn, eConn)
+	utils.Copy(eConn, remoteConn)
 }

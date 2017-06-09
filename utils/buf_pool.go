@@ -1,17 +1,15 @@
 package utils
 
-var bufferSize = 1024 * 33
-var freeList = make(chan []byte, 100)
-
 type BufferPool struct {
 	freeList chan []byte
+	size     int
 }
 
 func (pool *BufferPool) Get() (buffer []byte) {
 	select {
 	case buffer = <-pool.freeList:
 	default:
-		buffer = make([]byte, bufferSize)
+		buffer = make([]byte, pool.size)
 	}
 	return
 }
@@ -23,4 +21,5 @@ func (pool *BufferPool) Put(buffer []byte) {
 	}
 }
 
-var BufPool = &BufferPool{freeList: make(chan []byte, 100)}
+var Pool32K = &BufferPool{freeList: make(chan []byte, 100), size: 32 * 1024}
+var Pool33K = &BufferPool{freeList: make(chan []byte, 100), size: 33 * 1024}

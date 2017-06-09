@@ -1,7 +1,6 @@
 package client
 
 import (
-	"io"
 	"log"
 	"net"
 	"os"
@@ -24,8 +23,8 @@ func proxyToServer(client *Client, serverAddr string) {
 
 	defer eConn.Conn.Close()
 
-	go io.Copy(eConn, client.Conn)
-	io.Copy(client.Conn, eConn)
+	go utils.Copy(eConn, client.Conn)
+	utils.Copy(client.Conn, eConn)
 }
 
 func handleClient(client *Client, serverAddr string) {

@@ -1,6 +1,7 @@
 # Socccks
 
 [![Build Status](https://travis-ci.org/davidqhr/socccks.svg?branch=master)](https://travis-ci.org/davidqhr/socccks)
+[![Go Report Card](https://goreportcard.com/badge/github.com/davidqhr/socccks)](https://goreportcard.com/report/github.com/davidqhr/socccks)
 
 I create this repo for learning golang, socks5 protocol and shadowsocks(ss).
 

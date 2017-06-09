@@ -8,6 +8,7 @@ jobs:
       - checkout
       - run: mkdir -p $TEST_RESULTS
       - run: go get github.com/jstemmer/go-junit-report
+      - run: TEST_RESULTS=/tmp
       - run:
         name: Run unit tests
         command: |

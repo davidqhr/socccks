@@ -41,7 +41,7 @@ Socccks is a separated socks5 proxy. It allows you to access some resources that
 ### server side
 
 ```json
-# config.json
+# config.example.yml
 {
   "address": "0.0.0.0",
   "users": {
@@ -59,11 +59,11 @@ socccks-server -c config.example.yml
 ### client side
 
 ```bash
-socccks-client -s server_ip:server_port -l bindaddress:port -p pass -d
+socccks-client -s server_ip:server_port -l bindaddress:port -p pass
 curl --socks5-hostname bindaddress:port https://www.google.com -v
 
 # eg:
-socccks-client -s 192.168.1.132:8113 -l localhost:1090 -p david -d
+socccks-client -s 192.168.1.132:8113 -l localhost:1090 -p david
 curl --socks5-hostname localhost:1090 https://www.google.com -v
 ```
 

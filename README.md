@@ -33,8 +33,8 @@ Socccks is a separated socks5 proxy. It allows you to access some resources that
 ## install
 
 - install golang
-- `go get github.com/davidqhr/socccks`
-- `go install github.com/davidqhr/socccks`
+- install server: `go get github.com/davidqhr/socccks/cli/socccks-server`
+- install client: `go get github.com/davidqhr/socccks/cli/socccks-client`
 
 ## usage
 

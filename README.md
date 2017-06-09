@@ -54,7 +54,7 @@ Socccks is a separated socks5 proxy. It allows you to access some resources that
 ```
 
 ```bash
-socccks-server -c config.yml
+socccks-server -c config.example.yml
 ```
 
 ### client side

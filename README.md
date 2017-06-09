@@ -1,6 +1,6 @@
 # Introduce
 
-[![CircleCI](https://circleci.com/gh/davidqhr/socccks/tree/master.svg?style=svg)](https://circleci.com/gh/davidqhr/socccks/tree/master)
+[![Build Status](https://travis-ci.org/davidqhr/socccks.svg?branch=master)](https://travis-ci.org/davidqhr/socccks)
 
 I create this repo for learning golang, socks5 protocol and shadowsocks(ss).
 

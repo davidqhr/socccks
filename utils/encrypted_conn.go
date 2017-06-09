@@ -4,7 +4,6 @@ import (
 	"crypto/aes"
 	"encoding/binary"
 	"io"
-	"log"
 	"net"
 )
 
@@ -68,12 +67,6 @@ func (ec *EncryptedConn) Read(buf []byte) (rn int, err error) {
 
 	if _, er := io.ReadFull(ec.Conn, readBuffer[:2]); er != nil {
 		err = er
-
-		if er == io.EOF {
-			return
-		}
-
-		log.Println("read encrytped data length error")
 		return
 	}
 
@@ -82,12 +75,6 @@ func (ec *EncryptedConn) Read(buf []byte) (rn int, err error) {
 	_, er := io.ReadFull(ec.Conn, readBuffer[:dataLen])
 	if er != nil {
 		err = er
-
-		if er == io.EOF {
-			return
-		}
-
-		log.Println("can't read full encrytped data")
 		return
 	}
 

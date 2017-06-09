@@ -27,7 +27,10 @@ func NewClient(conn net.Conn, password string) *Client {
 
 func (client *Client) GetSupportAuthMethods() (methods []byte, err error) {
 	conn := client.Conn
-	var buf = make([]byte, 100)
+
+	buf := utils.BufPool.Get()
+	defer utils.BufPool.Put(buf)
+
 	_, er := io.ReadFull(conn, buf[:2])
 
 	if er != nil {

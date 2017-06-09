@@ -13,8 +13,8 @@ func authentication(client *Client) bool {
 		return true
 	case utils.AuthUsernamePassword:
 		// http://www.rfc-base.org/txt/rfc-1929.txt
-		buf := bufferPool.Get()
-		defer bufferPool.Put(buf)
+		buf := utils.BufPool.Get()
+		defer utils.BufPool.Put(buf)
 
 		_, err := conn.Read(buf)
 

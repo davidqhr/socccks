@@ -1,6 +1,6 @@
-package client
+package utils
 
-var bufferSize = 1024 * 32
+var bufferSize = 1024 * 33
 var freeList = make(chan []byte, 100)
 
 type BufferPool struct {
@@ -23,4 +23,4 @@ func (pool *BufferPool) Put(buffer []byte) {
 	}
 }
 
-var bufferPool = &BufferPool{freeList: make(chan []byte, 100)}
+var BufPool = &BufferPool{freeList: make(chan []byte, 100)}

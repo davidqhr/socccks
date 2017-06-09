@@ -8,7 +8,9 @@ import (
 )
 
 func handleConn(eConn *utils.EncryptedConn) {
-	buf := make([]byte, 100)
+	buf := utils.BufPool.Get()
+	defer utils.BufPool.Put(buf)
+
 	_, err := eConn.Read(buf)
 
 	if err != nil {

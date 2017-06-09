@@ -30,7 +30,7 @@ func handleCmdConnection(eConn *utils.EncryptedConn, buf []byte) {
 	}
 
 	port := binary.BigEndian.Uint16(portBytes)
-	log.Println("addr", addr, "port", port)
+	log.Println(addr, port)
 
 	remoteConn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", string(addr), port))
 	if err != nil {

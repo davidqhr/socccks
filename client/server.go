@@ -67,16 +67,16 @@ func handleClient(client *Client, serverAddr string) {
 }
 
 func chooseAuthMethod(methods []byte) byte {
-	methods_map := make(map[byte]bool)
+	methodsMap := make(map[byte]bool)
 
 	for i := 0; i < len(methods); i++ {
-		methods_map[methods[i]] = true
+		methodsMap[methods[i]] = true
 	}
 
 	// only support no_auth or username_password_auth
-	if methods_map[utils.AuthNo] {
+	if methodsMap[utils.AuthNo] {
 		return utils.AuthNo
-	} else if methods_map[utils.AptyDomainName] {
+	} else if methodsMap[utils.AptyDomainName] {
 		return utils.AptyDomainName
 	} else {
 		return utils.NoAcceptableMethods

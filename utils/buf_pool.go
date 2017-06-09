@@ -1,11 +1,11 @@
 package utils
 
-type BufferPool struct {
+type bufferPool struct {
 	freeList chan []byte
 	size     int
 }
 
-func (pool *BufferPool) Get() (buffer []byte) {
+func (pool *bufferPool) Get() (buffer []byte) {
 	select {
 	case buffer = <-pool.freeList:
 	default:
@@ -14,12 +14,12 @@ func (pool *BufferPool) Get() (buffer []byte) {
 	return
 }
 
-func (pool *BufferPool) Put(buffer []byte) {
+func (pool *bufferPool) Put(buffer []byte) {
 	select {
 	case pool.freeList <- buffer:
 	default:
 	}
 }
 
-var Pool32K = &BufferPool{freeList: make(chan []byte, 100), size: 32 * 1024}
-var Pool33K = &BufferPool{freeList: make(chan []byte, 100), size: 33 * 1024}
+var Pool32K = &bufferPool{freeList: make(chan []byte, 100), size: 32 * 1024}
+var Pool33K = &bufferPool{freeList: make(chan []byte, 100), size: 33 * 1024}

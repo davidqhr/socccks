@@ -1,8 +1,5 @@
 {
   "address": "0.0.0.0",
-  "daemon": true,
-  "log_file": "/tmp/socccks.stdout",
-  "err_file": "/tmp/socccks.stderr",
   "users": {
     "david": 8112,
     "monika": 8113

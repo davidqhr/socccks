@@ -7,9 +7,6 @@ import (
 )
 
 type Configuration struct {
-	Daemon  bool
-	LogFile os.File
-	ErrFile os.File
 	Address string
 	Users   map[string]int
 }

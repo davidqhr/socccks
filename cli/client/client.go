@@ -26,10 +26,10 @@ func main() {
 			Name:  "password, p",
 			Usage: "password to connect remote server",
 		},
-		cli.BoolFlag{
-			Name:  "daemon, d",
-			Usage: "run client as daemon a process",
-		},
+		// cli.BoolFlag{
+		// 	Name:  "daemon, d",
+		// 	Usage: "run client as daemon a process",
+		// },
 	}
 
 	app.Action = func(c *cli.Context) error {

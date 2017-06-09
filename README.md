@@ -44,7 +44,6 @@ Socccks is a separated socks5 proxy. It allows you to access some resources that
 # config.json
 {
   "address": "0.0.0.0",
-  "daemon": true,
   "users": {
     "david": 8112,
     "monika": 8113

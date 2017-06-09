@@ -4,13 +4,13 @@ jobs:
     working_directory: /go/src/github.com/davidqhr/socccks
     docker:
       - image: circleci/golang:1.8
+    environment:
+      TEST_RESULTS: /tmp/test-results
     steps:
       - checkout
       - run: mkdir -p $TEST_RESULTS
-      - run: go get github.com/jstemmer/go-junit-report
-      - run: TEST_RESULTS=/tmp
       - run:
-        name: Run unit tests
-        command: |
-          trap "go-junit-report <${TEST_RESULTS}/go-test.out > ${TEST_RESULTS}/go-test-report.xml" EXIT
-          make test | tee ${TEST_RESULTS}/go-test.out
+          name: Run unit tests
+          command: |
+            trap "go-junit-report <${TEST_RESULTS}/go-test.out > ${TEST_RESULTS}/go-test-report.xml" EXIT
+            make test | tee ${TEST_RESULTS}/go-test.out

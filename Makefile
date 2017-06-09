@@ -1,11 +1,9 @@
 default: build
 
 build:
+	go get -d ./...
 	cd cli/client; go build -v -o ../../bin/socccks-client
 	cd cli/server; go build -v -o ../../bin/socccks-server
-
-run: build
-	./bin/socccks
 
 clean:
 	rm -rf bin

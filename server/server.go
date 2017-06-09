@@ -7,6 +7,8 @@ import (
 )
 
 func handleConn(eConn *utils.EncryptedConn) {
+	defer eConn.Close()
+
 	buf := utils.Pool33K.Get()
 	defer utils.Pool33K.Put(buf)
 

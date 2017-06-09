@@ -21,7 +21,7 @@ func proxyToServer(client *Client, serverAddr string) {
 	eConn := utils.NewEncryptedConn(remoteConn, client.Password)
 	// remoteConn, err := net.Dial("tcp", "localhost:8112")
 
-	defer eConn.Conn.Close()
+	defer eConn.Close()
 
 	go utils.Copy(eConn, client.Conn)
 	utils.Copy(client.Conn, eConn)
@@ -44,7 +44,6 @@ func handleClient(client *Client, serverAddr string) {
 	}
 
 	method := chooseAuthMethod(methods)
-
 	err = client.SetAuthMethod(method)
 
 	if err != nil {

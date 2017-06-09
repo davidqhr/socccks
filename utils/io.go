@@ -6,8 +6,10 @@ import (
 	"time"
 )
 
-// this code is copy from https://golang.org/src/io/io.go
-// add timeout and buffer pool support
+// this code is copied from https://golang.org/src/io/io.go
+// with some additions
+// 1. timeout
+// 2. buffer pool
 
 func Copy(dst net.Conn, src net.Conn) (written int64, err error) {
 	timeoutDuration := 15 * time.Second

@@ -17,9 +17,9 @@ I create this repo for learning golang, socks5 protocol and shadowsocks(ss).
    socks5 protocol |                               |                               |
                    |                               |                               |
                    |                               |                               |
-         +--------------------+            Encrypted Data pipe           +--------------------+
+         +--------------------+           Encrypted Data pipe            +--------------------+
          |   socccks-client   | <--------------------------------------> |   socccks-server   |
-         +--------------------+             through tcp socket           +--------------------+
+         +--------------------+           through tcp socket             +--------------------+
                                                    |
 ----------------------------------------------------------------------------------------------------
                                                    |
